@@ -47,10 +47,9 @@ export class HumanService {
   ) {
     this.human.detect(input).then((result) => {
       try {
-        // console.log(result);
         const face = result.face[0];
-        // emotion is automatically sorted by the highest match
         if (face.emotion) {
+          // emotion is automatically sorted by the highest match
           cb({
             name: face.emotion[0].emotion,
             score: face.emotion[0].score,

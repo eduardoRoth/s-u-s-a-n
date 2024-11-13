@@ -47,7 +47,7 @@ import { FaceResult } from '@vladmandic/human';
   template: `
     <ion-header>
       <ion-toolbar color="secondary">
-        <ion-title> Developer </ion-title>
+        <ion-title> Developer</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content>
@@ -70,8 +70,13 @@ import { FaceResult } from '@vladmandic/human';
           </ion-col>
         </ion-row>
       </ion-grid>
-      <ion-button (click)="startWorking()"> Start working </ion-button>
-      <ion-button (click)="stopWorking()"> Stop working </ion-button>
+      <ion-button
+        (click)="startWorking()"
+        [disabled]="!name() || name()?.length === 0"
+      >
+        Start working</ion-button
+      >
+      <ion-button (click)="stopWorking()"> Stop working</ion-button>
     </ion-content>
   `,
 })
@@ -79,10 +84,12 @@ export class DeveloperComponent {
   private readonly mqtt = inject(MqttService);
   private readonly human = inject(HumanService);
 
-  readonly name = model<string>('Eduardo');
+  readonly name = model<string>();
   readonly video = viewChild<ElementRef>('video');
 
-  private readonly topic = computed(() => this.name().toLowerCase());
+  private readonly topic = computed(() =>
+    this.name() ? this.name()!.toLowerCase() : undefined,
+  );
 
   async startWorking() {
     const stream = await this.human.startCamera();
@@ -102,7 +109,6 @@ export class DeveloperComponent {
     this.video()!.nativeElement.onpause = () => {
       this.human.stopCamera();
     };
-    console.log(this.video());
   }
 
   stopWorking() {

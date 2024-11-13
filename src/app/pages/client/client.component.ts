@@ -12,6 +12,7 @@ import {
 import { MqttService } from '../services/mqtt.service';
 import { addIcons } from 'ionicons';
 import { happy, sad } from 'ionicons/icons';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-client',
@@ -25,6 +26,7 @@ import { happy, sad } from 'ionicons/icons';
     IonLabel,
     IonNote,
     IonIcon,
+    JsonPipe,
   ],
   template: `
     <ion-header>
@@ -33,21 +35,22 @@ import { happy, sad } from 'ionicons/icons';
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      @for (message of messages(); track message.timestamp) {
+      @for (entry of messages().entries(); track entry[0]) {
+        @let developer = entry[1];
         <ion-item>
           <ion-icon
-            [name]="message.emotion.name === 'happy' ? 'happy' : 'sad'"
+            [name]="developer.emotion.name === 'happy' ? 'happy' : 'sad'"
             slot="start"
           ></ion-icon>
           <ion-label>
-            <h2>{{ message.name }}</h2>
+            <h2>{{ developer.name }}</h2>
             <p>
-              Chance of being <strong>{{ message.emotion.name }}</strong> is
-              {{ message.emotion.score * 100 }}%
+              Chance of being <strong>{{ developer.emotion.name }}</strong> is
+              {{ developer.emotion.score * 100 }}%
             </p>
           </ion-label>
           <ion-note slot="end">
-            {{ message.timestamp }}
+            {{ developer.timestamp }}
           </ion-note>
         </ion-item>
       }
@@ -57,15 +60,19 @@ import { happy, sad } from 'ionicons/icons';
 export class ClientComponent {
   private readonly mqtt = inject(MqttService);
   readonly messages = signal<
-    {
-      name: string;
-      emotion: {
+    Map<
+      string,
+      {
         name: string;
-        score: number;
-      };
-      timestamp: number;
-    }[]
-  >([]);
+        emotion: {
+          name: string;
+          score: number;
+        };
+        timestamp: number;
+      }
+    >
+  >(new Map());
+
   constructor() {
     addIcons({
       happy,
@@ -73,8 +80,8 @@ export class ClientComponent {
     });
     afterNextRender(() => {
       this.mqtt.subscribeTopic('developers/#', (topic, payload: any) => {
-        console.log(payload);
-        this.messages.set([payload]);
+        const newMap = new Map(this.messages());
+        this.messages.set(newMap.set(topic, payload));
       });
     });
   }

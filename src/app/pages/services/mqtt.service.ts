@@ -30,7 +30,6 @@ export class MqttService {
   publishMessage(topic: string, message: unknown) {
     try {
       const jsonMessage = JSON.stringify(message);
-      console.log(topic, jsonMessage);
       this.client.publish(topic, jsonMessage);
     } catch (err) {
       console.log(err);
